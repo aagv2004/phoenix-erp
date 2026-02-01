@@ -1,0 +1,42 @@
+services:
+  # 1. El motor de base de datos.
+  db:
+    image: postgres:16-alpine
+    container_name: phoenix_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin_user
+      POSTGRES_PASSWORD: admin_password_segura_123
+      POSTGRES_DB: phoenix_inventory
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Aquí está la magia: carga el sql al iniciar.
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - phoenix_network
+
+  # 2. La interfaz gráfica (pgAdmin)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: phoenix_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@phoenix.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - phoenix_network
+
+  # 3. Volúmenesss
+volumes:
+  postgres_data:
+
+  # 4. Redesss
+networks:
+  phoenix_network:
+    driver: bridge

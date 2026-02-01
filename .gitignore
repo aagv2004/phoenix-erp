@@ -1,0 +1,21 @@
+# Dependencias Node
+node_modules/
+dist/
+npm-debug.log
+
+# Variables de entorno
+.env
+.env.local
+
+# Docker & Bases de datos
+postgres_data/
+pgadmin_data/
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
