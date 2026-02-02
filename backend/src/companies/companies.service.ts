@@ -1,76 +1,47 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { PrismaService } from '../prisma/prisma.service';
+import { Company } from './entities/company.entity';
 
 @Injectable()
 export class CompaniesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(Company)
+    private readonly companyRepository: Repository<Company>,
+  ) {}
 
   async create(createCompanyDto: CreateCompanyDto) {
-    try {
-      // Usamos 'this.prisma.companies' (coincide con tu schema)
-      return await this.prisma.companies.create({
-        data: {
-          name: createCompanyDto.name,
-          // Mapeo directo: DTO (snake_case) -> Base de Datos (snake_case)
-          tax_id: createCompanyDto.tax_id,
-          description: createCompanyDto.description,
-        },
-      });
-    } catch (error) {
-      // Si el error es P2002, es violación de campo único (ej: RUT repetido si fuera unique)
-      if (error.code === 'P2002') {
-        throw new ConflictException('Ya existe una empresa con ese RUT/ID');
-      }
-      // Log del error real en consola para debug
-      console.error(error);
-      throw new InternalServerErrorException('Error creando la empresa');
-    }
+    // TypeORM: create crea la instancia, save la guarda en BD
+    const company = this.companyRepository.create(createCompanyDto);
+    return await this.companyRepository.save(company);
   }
 
-  async findAll() {
-    return await this.prisma.companies.findMany();
+  findAll() {
+    return this.companyRepository.find();
   }
 
   async findOne(id: string) {
-    const company = await this.prisma.companies.findUnique({
-      where: { id },
-    });
-    if (!company)
-      throw new NotFoundException(`La empresa con ID ${id} no existe`);
+    const company = await this.companyRepository.findOneBy({ id });
+    if (!company) throw new NotFoundException(`Company #${id} not found`);
     return company;
   }
 
   async update(id: string, updateCompanyDto: UpdateCompanyDto) {
-    await this.findOne(id);
+    // Preload busca si existe y le parcha los datos nuevos
+    const company = await this.companyRepository.preload({
+      id: id,
+      ...updateCompanyDto,
+    });
 
-    try {
-      return await this.prisma.companies.update({
-        where: { id },
-        data: {
-          name: updateCompanyDto.name,
-          tax_id: updateCompanyDto.tax_id,
-          description: updateCompanyDto.description,
-        },
-      });
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Error actualizando la empresa',
-        error,
-      );
-    }
+    if (!company) throw new NotFoundException(`Company #${id} not found`);
+
+    return this.companyRepository.save(company);
   }
 
   async remove(id: string) {
-    await this.findOne(id);
-    return await this.prisma.companies.delete({
-      where: { id },
-    });
+    const company = await this.findOne(id); // Reutilizamos findOne para validar
+    return this.companyRepository.remove(company);
   }
 }
