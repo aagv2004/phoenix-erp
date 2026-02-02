@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import client from "../api/client.ts";
 import type { Company } from "../types/company.ts";
+import { formatRut, validateRut, cleanRut } from "../utils/rutUtils.ts";
 
 interface Props {
   onSuccess: () => void;
@@ -14,25 +15,66 @@ export default function CreateCompanyForm({
   onCancel,
 }: Props) {
   // Estados inputs
-  const [name, setName] = useState(companyToEdit?.name || "");
-  const [taxId, setTaxId] = useState(companyToEdit?.tax_id || "");
   const [description, setDescription] = useState(
     companyToEdit?.description || "",
   );
+  const [rut, setRut] = useState("");
+  const [rutError, setRutError] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (companyToEdit) {
+      setRut(formatRut(companyToEdit.tax_id || ""));
+      setDescription(companyToEdit.description || "");
+      setRutError(false);
+    } else {
+      // Si cancelamos o es nuevo, limpiamos
+      setRut("");
+      setDescription("");
+      setRutError(false);
+    }
+  }, [companyToEdit]);
+
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    if (cleanRut(value).length === 0) {
+      setRut("");
+      setRutError(false);
+      return;
+    }
+
+    const formatted = formatRut(value);
+    setRut(formatted);
+
+    if (cleanRut(value).length > 7) {
+      setRutError(!validateRut(formatted));
+    } else {
+      setRutError(true);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const form = e.currentTarget;
+
+    if (rut && !validateRut(rut)) {
+      alert("El RUT ingresado no es válido.");
+      return;
+    }
+
     setIsSubmitting(true);
+    const formData = new FormData(form);
+
+    const data = {
+      name: formData.get("name"),
+      tax_id: rut,
+      description: formData.get("description"),
+    };
 
     try {
-      const data = {
-        name: name,
-        tax_id: taxId,
-        description: description,
-      };
-
       if (companyToEdit) {
         await client.patch(`/companies/${companyToEdit.id}`, data);
         alert("Empresa actualizada con éxito.");
@@ -41,9 +83,11 @@ export default function CreateCompanyForm({
         alert("Empresa creada con éxito.");
       }
 
-      setName("");
-      setTaxId("");
+      setRut("");
       setDescription("");
+      setRutError(false);
+
+      form.reset();
 
       onSuccess();
     } catch (error) {
@@ -76,25 +120,30 @@ export default function CreateCompanyForm({
             Nombre*
           </label>
           <input
+            name="name"
+            defaultValue={companyToEdit?.name}
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
             required
             placeholder="Ej: Mi Pyme SpA"
-            className={inputClasses}
+            className={`${inputClasses} border-gray-300 focus:border-blue-500 focus:ring-blue-500`}
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
             RUT / ID
+            {rutError && (
+              <span className="text-red-500 text-xs ml-2">(Inválido)</span>
+            )}
           </label>
           <input
             type="text"
-            value={taxId}
-            onChange={(e) => setTaxId(e.target.value)}
+            name="tax_id"
+            value={rut}
+            maxLength={12}
+            onChange={handleRutChange}
             placeholder="Ej: 76.123.456-K"
-            className={inputClasses}
+            className={`${inputClasses} ${rutError ? "border-red-500 text-red-900 focus:border-red-500 focus:ring-red-500 bg-red-50" : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"}`}
           />
         </div>
 
@@ -104,10 +153,11 @@ export default function CreateCompanyForm({
           </label>
           <input
             type="text"
+            name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Rubro..."
-            className={inputClasses}
+            className={`${inputClasses} border-gray-300 focus:border-blue-500 focus:ring-blue-500`}
           />
         </div>
 
