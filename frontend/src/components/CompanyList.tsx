@@ -1,58 +1,14 @@
-import { useState, useEffect } from "react";
-import client from "../api/client.ts";
 import type { Company } from "../types/company.ts";
 
 interface Props {
+  companies: Company[]; // Recibe la data lista del padre
   onEdit: (company: Company) => void;
-  refreshTrigger: number;
+  onDelete: (id: string) => void; // Recibe la función para borrar del padre
 }
 
-export default function CompanyList({ onEdit, refreshTrigger }: Props) {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    client
-      .get("/companies")
-      .then((response) => {
-        setCompanies(response.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setError("No se pudieron cargar las empresas.");
-        setLoading(false);
-      });
-  }, [refreshTrigger]);
-
-  const handleDelete = async (id: string) => {
-    if (
-      !window.confirm(
-        "¿Estás seguro que deseas eliminar esta empresa? Esta acción no se puede deshacer.",
-      )
-    )
-      return;
-
-    try {
-      await client.delete(`/companies/${id}`);
-
-      setCompanies((prev) => prev.filter((company) => company.id !== id));
-      alert("Empresa eliminada con éxito.");
-    } catch (err) {
-      console.error(err);
-      alert(
-        "Error eliminando la empresa. Revisa la consola para más detalles.",
-      );
-    }
-  };
-
-  if (loading)
-    return (
-      <div className="text-center py-10 text-gray-500">Cargando datos...</div>
-    );
-  if (error)
-    return <div className="text-center py-10 text-red-500">{error}</div>;
+export default function CompanyList({ companies, onEdit, onDelete }: Props) {
+  // YA NO HAY useEffect NI useState NI client.get AQUÍ 🚫
+  // El componente ahora es puramente visual.
 
   return (
     <div className="bg-white shadow overflow-hidden rounded-lg border border-gray-200">
@@ -139,7 +95,7 @@ export default function CompanyList({ onEdit, refreshTrigger }: Props) {
                     Editar
                   </button>
                   <button
-                    onClick={() => handleDelete(company.id)}
+                    onClick={() => onDelete(company.id)} // 👈 Llamamos al padre
                     className="text-red-600 hover:text-red-900 transition focus:outline-none"
                   >
                     Eliminar

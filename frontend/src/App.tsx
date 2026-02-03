@@ -1,52 +1,77 @@
-import { useState } from "react";
-import CompanyList from "./components/CompanyList.tsx";
-import CreateCompanyForm from "./components/CreateCompanyForm.tsx";
-import type { Company } from "./types/company.ts";
+import { useState, useEffect } from "react";
+import client from "./api/client"; // Necesario para branches
+import { useCompanies } from "./hooks/useCompanies"; // Importamos el hook nuevo
+
+// Componentes
+import CompanyList from "./components/CompanyList";
+import CreateCompanyForm from "./components/CreateCompanyForm";
+import CreateBranchForm from "./components/CreateBranchForm";
+import BranchList from "./components/BranchList";
+
+// Tipos
+import type { Company } from "./types/company";
+import type { Branch } from "./types/branch";
 
 function App() {
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  // 1. LÓGICA DE EMPRESAS (Usando el Hook que acabamos de crear)
+  const { companies, fetchCompanies, deleteCompany } = useCompanies();
+  const [companyToEdit, setCompanyToEdit] = useState<Company | null>(null);
 
-  const handleSuccess = () => {
-    setRefreshKey((prev) => prev + 1);
-    setEditingCompany(null);
+  // 2. LÓGICA DE SUCURSALES (La dejamos aquí para no complicarte con más archivos hoy)
+  const [branches, setBranches] = useState<Branch[]>([]);
+
+  const fetchBranches = () => {
+    client
+      .get("/branches")
+      .then((response) => setBranches(response.data))
+      .catch((error) => console.error("Error fetching branches:", error));
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-8 font-sans">
-      <div className="max-w-5xl mx-auto">
-        <header className="bg-white shadow-sm rounded-lg p-6 mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Phoenix ERP</h1>
-          <p className="text-gray-500 mt-2">
-            Gestión centralizada de empresas.
-          </p>
-        </header>
-      </div>
+  // Cargar sucursales al inicio
+  useEffect(() => {
+    fetchBranches();
+  }, []);
 
-      <main className="space-y-8">
+  return (
+    <div className="min-h-screen bg-gray-100 py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto space-y-12">
+        {/* --- SECCIÓN EMPRESAS --- */}
         <section>
-          <CreateCompanyForm
-            key={editingCompany?.id || "new"}
-            companyToEdit={editingCompany}
-            onSuccess={handleSuccess}
-            onCancel={() => setEditingCompany(null)}
-          />
-        </section>
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-700">
-              Listado de empresas
-            </h2>
-            <span className="text-sm text-gray-500 bg-gray-200 px-3 py-1 rounded-full">
-              En vivo
-            </span>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">Empresas</h1>
           </div>
-          <CompanyList
-            refreshTrigger={refreshKey}
-            onEdit={(company) => setEditingCompany(company)}
+
+          <CreateCompanyForm
+            onSuccess={fetchCompanies}
+            companyToEdit={companyToEdit}
+            onCancel={() => setCompanyToEdit(null)}
           />
+
+          <div className="mt-8">
+            <CompanyList
+              companies={companies}
+              onDelete={deleteCompany}
+              onEdit={setCompanyToEdit}
+            />
+          </div>
         </section>
-      </main>
+
+        <hr className="border-t-2 border-gray-200" />
+
+        {/* --- SECCIÓN SUCURSALES --- */}
+        <section>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">
+            Gestión de Sucursales
+          </h2>
+
+          {/* El formulario recibe las empresas del hook y refresca la lista de branches al guardar */}
+          <CreateBranchForm onSuccess={fetchBranches} companies={companies} />
+
+          <div className="mt-8">
+            <BranchList branches={branches} />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
