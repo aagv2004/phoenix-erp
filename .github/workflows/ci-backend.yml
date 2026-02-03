@@ -1,47 +1,53 @@
-name: Backend CI
+name: Phoenix ERP CI (Full Stack)
 
-# ¿Cuándo se ejecuta esto?
 on:
   push:
-    branches: ["main", "develop", "feature/*"] # Cada vez que subas cambios
+    branches: ["main", "develop", "feature/*"]
   pull_request:
-    branches: ["main", "develop"] # Cada vez que quieras mezclar ramas
+    branches: ["main", "develop"]
 
 jobs:
-  build-and-test:
-    name: Build & Check (Backend)
+  # TRABAJO 1: El Backend (Lo que ya tenías)
+  check-backend:
+    name: Backend Build & Lint
     runs-on: ubuntu-latest
-
-    # IMPORTANTE: Definimos que todas las acciones de este job
-    # ocurren dentro de la carpeta 'backend'
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: ./backend # 👈 Zona Backend
 
     steps:
-      # 1. Descargar tu código
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # 2. Instalar Node.js (Usamos la versión 20 que es LTS)
+      - uses: actions/checkout@v4
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
-
-      # 3. Instalar dependencias
-      # 'npm ci' es como 'npm install' pero más rápido y estricto para servidores (Clean Install)
       - name: Install dependencies
         run: npm ci
-
-      # 4. Revisar Linting (Estilo de código)
-      # Esto fallará si dejaste console.logs feos o código mal formateado
       - name: Run Linter
         run: npm run lint
+      - name: Build Application
+        run: npm run build
 
-      # 5. Compilar (Build)
-      # Esto verifica que no haya errores de sintaxis graves que impidan compilar
+  # TRABAJO 2: El Frontend (Lo nuevo)
+  check-frontend:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend # 👈 Zona Frontend
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      # Nota: Vite hace el chequeo de tipos al compilar
       - name: Build Application
         run: npm run build
