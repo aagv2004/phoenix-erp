@@ -6,6 +6,7 @@ import { CompaniesModule } from './companies/companies.module';
 import { BranchesModule } from './branches/branches.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     // PrismaModule,
     CompaniesModule,
     BranchesModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

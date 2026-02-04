@@ -11,9 +11,9 @@ export default function Layout() {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 bg-[radial-gradient(#e5e7b_1px, transparent_1px)] [background-size:16px_16px]">
       {/* SIDEBAR */}
-      <aside className="w-64 bg-white shadow-xl flex flex-col border-r border-orange-100">
+      <aside className="w-64 bg-white/95 backdrop-blur-sm shadow-xl flex flex-col border-r border-orange-100 z-10">
         <div className="p-6 border-b border-orange-100">
           {/* LOGO CON DEGRADADO PHOENIX 🔥 */}
           <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
@@ -56,7 +56,7 @@ export default function Layout() {
       </aside>
 
       {/* CONTENIDO PRINCIPAL */}
-      <main className="flex-1 overflow-auto p-8 bg-gray-50">
+      <main className="flex-1 overflow-auto p-8 relative">
         <Outlet />
       </main>
     </div>

@@ -73,7 +73,7 @@ export default function CreateBranchForm({
 
   // Tus clases de input arregladas (Phoenix Style) 🔥
   const inputClasses =
-    "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none sm:text-sm px-3 py-2 border transition-all";
+    "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none sm:text-sm px-3 py-2 border transition-all bg-white";
 
   return (
     <div
