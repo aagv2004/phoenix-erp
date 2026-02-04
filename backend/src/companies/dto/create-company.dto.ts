@@ -1,14 +1,25 @@
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger'; // 👈 Importar esto
 
 export class CreateCompanyDto {
-  @IsString({ message: 'El nombre debe ser un texto' })
-  @IsNotEmpty({ message: 'El nombre es obligatorio' })
+  @ApiProperty({
+    example: 'Mi Pyme SpA',
+    description: 'Nombre legal de la empresa',
+  }) // 👈 Decorador Mágico
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
-  @IsString({ message: 'El RUT/Tax ID debe ser un texto' })
-  @IsOptional()
-  tax_id?: string;
+  @ApiProperty({ example: '76.123.456-K', description: 'RUT o ID fiscal' })
+  @IsString()
+  @IsNotEmpty()
+  tax_id: string;
 
+  @ApiProperty({
+    example: 'Venta de insumos',
+    description: 'Rubro o descripción',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   description?: string;
