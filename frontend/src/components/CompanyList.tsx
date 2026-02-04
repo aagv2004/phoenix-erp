@@ -90,7 +90,7 @@ export default function CompanyList({ companies, onEdit, onDelete }: Props) {
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
                     onClick={() => onEdit(company)}
-                    className="text-amber-600 hover:text-amber-900 mr-4 transition focus:outline-none"
+                    className="text-orange-600 hover:text-orange-900 mr-4 transition-colors focus:outline-none"
                   >
                     Editar
                   </button>

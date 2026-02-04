@@ -100,16 +100,16 @@ export default function CreateCompanyForm({
 
   const isEditing = !!companyToEdit;
   const inputClasses =
-    "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border";
+    "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none sm:text-sm px-3 py-2 border transition-all";
 
   return (
     <div
-      className={`shadow-md rounded-lg p-6 transition-colors duration-300 ${isEditing ? "bg-amber-50 border border-amber-200" : "bg-white"}`}
+      className={`shadow-md rounded-lg p-6 transition-colors duration-300 border ${isEditing ? "bg-orange-50 border border-orange-200" : "bg-white border-gray-200"}`}
     >
       <h3
-        className={`text-lg font-medium mb-4 ${isEditing ? "text-amber-700" : "text-gray-900"}`}
+        className={`text-lg font-bold mb-4 ${isEditing ? "text-orange-800" : "text-gray-800"}`}
       >
-        {isEditing ? "Editar Empresa" : "Nueva empresa"}
+        {isEditing ? "✏️ Editar Empresa" : "🏢 Nueva Empresa"}
       </h3>
       <form
         onSubmit={handleSubmit}
@@ -125,7 +125,7 @@ export default function CreateCompanyForm({
             type="text"
             required
             placeholder="Ej: Mi Pyme SpA"
-            className={`${inputClasses} border-gray-300 focus:border-blue-500 focus:ring-blue-500`}
+            className={`${inputClasses}`}
           />
         </div>
 
@@ -143,7 +143,7 @@ export default function CreateCompanyForm({
             maxLength={12}
             onChange={handleRutChange}
             placeholder="Ej: 76.123.456-K"
-            className={`${inputClasses} ${rutError ? "border-red-500 text-red-900 focus:border-red-500 focus:ring-red-500 bg-red-50" : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"}`}
+            className={`${inputClasses} ${rutError ? "border-red-500 text-red-900 focus:border-red-500 focus:ring-red-500 bg-red-50" : ""}`}
           />
         </div>
 
@@ -157,7 +157,7 @@ export default function CreateCompanyForm({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Rubro..."
-            className={`${inputClasses} border-gray-300 focus:border-blue-500 focus:ring-blue-500`}
+            className={`${inputClasses}`}
           />
         </div>
 
@@ -166,10 +166,10 @@ export default function CreateCompanyForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`flex-1 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              isEditing
-                ? "bg-amber-600 hover:bg-amber-700 focus:ring-amber-500"
-                : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
+            className={`h-10 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
+              isSubmitting
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-orange-600 hover:bg-orange-700 focus:ring-orange-500"
             } ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {isSubmitting

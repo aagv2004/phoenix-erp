@@ -1,67 +1,95 @@
 import { useState, useEffect } from "react";
 import client from "../api/client";
 import type { Company } from "../types/company";
+import type { Branch } from "../types/branch"; // Importamos el tipo Branch
 
 interface Props {
   onSuccess: () => void;
   companies: Company[];
+  branchToEdit?: Branch | null; // <--- NUEVO
+  onCancel: () => void; // <--- NUEVO
 }
 
-export default function CreateBranchForm({ onSuccess, companies }: Props) {
-  // Estados del formulario
+export default function CreateBranchForm({
+  onSuccess,
+  companies,
+  branchToEdit,
+  onCancel,
+}: Props) {
+  // Estados
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [companyId, setCompanyId] = useState(""); // El ID de la empresa seleccionada
-
-  // Estados para llenar el Select
-
+  const [companyId, setCompanyId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 1. Cargar empresas al iniciar el componente 🔄
+  // EFECTO: Detectar si estamos editando o creando
   useEffect(() => {
-    if (companies.length > 0 && !companyId) {
-      setCompanyId(companies[0].id);
+    if (branchToEdit) {
+      // MODO EDICIÓN: Rellenamos los campos
+      setName(branchToEdit.name);
+      setAddress(branchToEdit.address);
+      // Ojo: branchToEdit trae el objeto company entero, sacamos el ID
+      setCompanyId(branchToEdit.company?.id || "");
+    } else {
+      // MODO CREACIÓN: Limpiamos (o seleccionamos la primera empresa por defecto)
+      setName("");
+      setAddress("");
+      if (companies.length > 0) setCompanyId(companies[0].id);
     }
-  }, [companies, companyId]);
+  }, [branchToEdit, companies]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    try {
-      // Enviamos el companyId para relacionar las tablas
-      await client.post("/branches", {
-        name,
-        address,
-        companyId,
-      });
+    const data = { name, address, companyId };
 
-      // Limpiamos solo los textos
-      setName("");
-      setAddress("");
+    try {
+      if (branchToEdit) {
+        // ACTUALIZAR (PATCH)
+        await client.patch(`/branches/${branchToEdit.id}`, data);
+        // alert("Sucursal actualizada");
+      } else {
+        // CREAR (POST)
+        await client.post("/branches", data);
+        // alert("Sucursal creada");
+      }
+
+      // Limpiar y avisar al padre
+      if (!branchToEdit) {
+        setName("");
+        setAddress("");
+      }
       onSuccess();
     } catch (error) {
       console.error(error);
-      alert("Error al crear sucursal");
+      alert("Error al guardar la sucursal");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const isEditing = !!branchToEdit;
+
+  // Tus clases de input arregladas (Phoenix Style) 🔥
   const inputClasses =
-    "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border";
+    "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none sm:text-sm px-3 py-2 border transition-all";
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6 mb-8 border border-gray-200">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">
-        📍 Nueva Sucursal
+    <div
+      className={`shadow-md rounded-lg p-6 mb-8 border transition-colors duration-300 ${isEditing ? "bg-orange-50 border-orange-200" : "bg-white border-gray-200"}`}
+    >
+      <h3
+        className={`text-lg font-bold mb-4 ${isEditing ? "text-orange-800" : "text-gray-900"}`}
+      >
+        {isEditing ? "✏️ Editar Sucursal" : "📍 Nueva Sucursal"}
       </h3>
 
       <form
         onSubmit={handleSubmit}
         className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
       >
-        {/* Nombre */}
+        {/* NOMBRE */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Nombre
@@ -70,13 +98,13 @@ export default function CreateBranchForm({ onSuccess, companies }: Props) {
             type="text"
             required
             value={name}
+            placeholder="Sucursal Norte"
             onChange={(e) => setName(e.target.value)}
-            placeholder="Ej: Bodega Norte"
             className={inputClasses}
           />
         </div>
 
-        {/* Dirección */}
+        {/* DIRECCIÓN */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Dirección
@@ -85,13 +113,13 @@ export default function CreateBranchForm({ onSuccess, companies }: Props) {
             type="text"
             required
             value={address}
+            placeholder="Panamericana Norte KM 882"
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="Ej: Panamericana 500"
             className={inputClasses}
           />
         </div>
 
-        {/* SELECTOR DE EMPRESAS (La magia) 🪄 */}
+        {/* EMPRESA */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Empresa
@@ -102,30 +130,39 @@ export default function CreateBranchForm({ onSuccess, companies }: Props) {
             className={inputClasses}
             required
           >
-            {companies.length === 0 && (
-              <option value="">Sin empresas...</option>
-            )}
-
-            {companies.map((company) => (
-              <option key={company.id} value={company.id}>
-                {company.name}
+            {companies.length === 0 && <option value="">Cargando...</option>}
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Botón */}
-        <button
-          type="submit"
-          disabled={isSubmitting || companies.length === 0}
-          className={`h-10 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-            isSubmitting || companies.length === 0
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500"
-          }`}
-        >
-          {isSubmitting ? "Guardando..." : "Crear"}
-        </button>
+        {/* BOTONES */}
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            disabled={isSubmitting || companies.length === 0}
+            className={`h-10 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors w-full md:w-auto ${
+              isSubmitting
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-orange-600 hover:bg-orange-700 focus:ring-orange-500"
+            }`}
+          >
+            {isSubmitting ? "..." : isEditing ? "Actualizar" : "Crear Sucursal"}
+          </button>
+
+          {isEditing && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="h-10 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors"
+            >
+              Cancelar
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );
