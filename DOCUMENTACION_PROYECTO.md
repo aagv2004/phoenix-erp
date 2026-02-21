@@ -199,17 +199,6 @@ docker ps
 
 ---
 
-## 🔧 Próximos Pasos Sugeridos
-
-- [ ] Crear API REST (Node.js/Express o Python/FastAPI)
-- [ ] Implementar autenticación JWT
-- [ ] Desarrollar frontend (React/Vue/Angular)
-- [ ] Agregar seeders para datos de prueba
-- [ ] Configurar CI/CD (GitHub Actions)
-- [ ] Documentar API con Swagger/OpenAPI
-
----
-
 ## 📌 Notas Técnicas
 
 **Stack tecnológico:**

@@ -82,6 +82,15 @@ export class UsersService {
     return { message: 'Usuario eliminado correctamente' };
   }
 
+  async findOneByEmail(email: string) {
+    const user = await this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'password', 'roles', 'fullName', 'isActive'],
+    });
+
+    return user;
+  }
+
   // Manejo de errores centralizado (por si el email ya existe)
   private handleDBErrors(error: any): never {
     if (error.code === '23505') {
