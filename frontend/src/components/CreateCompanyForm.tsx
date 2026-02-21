@@ -37,7 +37,7 @@ export default function CreateCompanyForm({
   }, [companyToEdit]);
 
   const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const value = e.target.value.toUpperCase(); // Forzamos mayúscula desde la entrada
 
     if (cleanRut(value).length === 0) {
       setRut("");
@@ -48,8 +48,9 @@ export default function CreateCompanyForm({
     const formatted = formatRut(value);
     setRut(formatted);
 
+    // Validamos con el valor limpio para evitar líos con puntos/guiones
     if (cleanRut(value).length > 7) {
-      setRutError(!validateRut(formatted));
+      setRutError(!validateRut(value));
     } else {
       setRutError(true);
     }
@@ -59,8 +60,9 @@ export default function CreateCompanyForm({
     e.preventDefault();
 
     const form = e.currentTarget;
+    const rutLimpio = cleanRut(rut);
 
-    if (rut && !validateRut(rut)) {
+    if (rutLimpio && !validateRut(rut)) {
       alert("El RUT ingresado no es válido.");
       return;
     }
@@ -70,7 +72,7 @@ export default function CreateCompanyForm({
 
     const data = {
       name: formData.get("name"),
-      tax_id: rut,
+      tax_id: rutLimpio,
       description: formData.get("description"),
     };
 

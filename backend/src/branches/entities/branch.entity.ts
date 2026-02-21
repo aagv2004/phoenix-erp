@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
 
-@Entity()
+@Entity('branches')
 export class Branch {
   @PrimaryGeneratedColumn('uuid')
   id: string;

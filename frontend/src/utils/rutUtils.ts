@@ -17,24 +17,21 @@ export const validateRut = (rut: string): boolean => {
   if (clean.length < 2) return false;
 
   const body = clean.slice(0, -1);
-  const dv = clean.slice(-1);
+  const dv = clean.slice(-1).toUpperCase();
 
   let suma = 0;
   let multiplo = 2;
 
-  for (let i = 1; i <= body.length; i++) {
-    const index = multiplo * parseInt(body.charAt(body.length - i));
-    suma = suma + index;
-    if (multiplo < 7) {
-      multiplo = multiplo + 1;
-    } else {
-      multiplo = 2;
-    }
+  for (let i = body.length - 1; i >= 0; i--) {
+    suma += multiplo * parseInt(body[i], 10);
+    multiplo = multiplo === 7 ? 2 : multiplo + 1;
   }
 
   const dvEsperado = 11 - (suma % 11);
-  const dvFinal =
-    dvEsperado === 11 ? "0" : dvEsperado === 10 ? "K" : dvEsperado.toString();
+  let dvFinal: string;
+  if (dvEsperado === 11) dvFinal = "0";
+  else if (dvEsperado === 10) dvFinal = "K";
+  else dvFinal = dvEsperado.toString();
 
   return dv === dvFinal;
 };

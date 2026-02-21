@@ -1,7 +1,8 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Branch } from '../../branches/entities/branch.entity'; // <--- Importar esto
+import { Product } from '../../products/entities/product.entity';
 
-@Entity()
+@Entity('companies')
 export class Company {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -17,6 +18,10 @@ export class Company {
 
   // NUEVA RELACIÓN 👇
   // Una Empresa (One) tiene Muchas Sucursales (Many)
-  @OneToMany(() => Branch, (branch) => branch.company)
+  @OneToMany(() => Branch, (branches) => branches.company)
   branches: Branch[];
+
+  // Nueva relación con productos
+  @OneToMany(() => Product, (product) => product.company)
+  products: Product[];
 }
