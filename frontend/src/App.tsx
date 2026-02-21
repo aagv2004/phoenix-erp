@@ -3,22 +3,24 @@ import Layout from "./components/Layout";
 import CompaniesPage from "./pages/CompaniesPage";
 import BranchesPage from "./pages/BranchesPage";
 import Dashboard from "./pages/Dashboard";
+import LoginPage from "./pages/LoginPage";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* La ruta padre renderiza el Layout (Menú) */}
-        <Route path="/" element={<Layout />}>
-          {/* Rutas hijas (se muestran donde pusimos <Outlet />) */}
-          <Route index element={<Dashboard />} />
+        <Route path="/login" element={<LoginPage />} />
 
-          <Route path="companies" element={<CompaniesPage />} />
-          <Route path="branches" element={<BranchesPage />} />
-
-          {/* Si escriben cualquier otra cosa, mandar al home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="companies" element={<CompaniesPage />} />
+            <Route path="branches" element={<BranchesPage />} />
+          </Route>
         </Route>
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

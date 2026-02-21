@@ -12,7 +12,7 @@ export class User {
   id: string;
 
   @Column('text')
-  fullName: string;
+  full_name: string;
 
   @Column('text', {
     unique: true, // No pueden haber dos usuarios con el mismo email
@@ -33,7 +33,7 @@ export class User {
     array: true,
     default: ['user'], // Por defecto son usuarios normales (luego agregamos 'admin')
   })
-  roles: string[];
+  role: string[];
 
   // Auditoría: Cuándo se creó y cuándo se actualizó
   @CreateDateColumn()

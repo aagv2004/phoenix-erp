@@ -1,8 +1,26 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
-import { Building2, Store, LayoutDashboard } from "lucide-react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Building2, Store, LayoutDashboard, LogOut } from "lucide-react";
+import { useAuthStore } from "../store/authStore";
+import { useSyncExternalStore } from "react";
+
+const useHasHydrated = () => {
+  return useSyncExternalStore(
+    (onStoreChange) => useAuthStore.persist.onFinishHydration(onStoreChange),
+    () => useAuthStore.persist.hasHydrated(),
+    () => false,
+  );
+};
 
 export default function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, setLogout } = useAuthStore();
+  const isHydrated = useHasHydrated();
+
+  const handleLogout = () => {
+    setLogout();
+    navigate("/login");
+  };
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
@@ -10,12 +28,14 @@ export default function Layout() {
     { path: "/branches", label: "Sucursales", icon: <Store size={20} /> },
   ];
 
+  if (!isHydrated) return null;
+  console.log("Usuario actual tras hidratación:", user);
+
   return (
     <div className="flex h-screen bg-gray-50 bg-[radial-gradient(#e5e7b_1px, transparent_1px)] [background-size:16px_16px]">
       {/* SIDEBAR */}
       <aside className="w-64 bg-white/95 backdrop-blur-sm shadow-xl flex flex-col border-r border-orange-100 z-10">
         <div className="p-6 border-b border-orange-100">
-          {/* LOGO CON DEGRADADO PHOENIX 🔥 */}
           <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
             Phoenix ERP
           </h1>
@@ -30,11 +50,10 @@ export default function Layout() {
                 to={item.path}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                   isActive
-                    ? "bg-orange-50 text-orange-700 font-semibold shadow-sm border-l-4 border-orange-500" // ACTIVO
-                    : "text-gray-500 hover:bg-orange-50 hover:text-orange-600" // HOVER
+                    ? "bg-orange-50 text-orange-700 font-semibold shadow-sm border-l-4 border-orange-500"
+                    : "text-gray-500 hover:bg-orange-50 hover:text-orange-600"
                 }`}
               >
-                {/* El icono cambia de color un poco más sutilmente */}
                 <span
                   className={
                     isActive
@@ -49,6 +68,30 @@ export default function Layout() {
             );
           })}
         </nav>
+
+        <div className="px-4 py-4 border-t border-orange-100 mt-auto">
+          <div className="flex items-center gap-3 px-2 py-2">
+            <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold shadow-sm">
+              {user?.full_name?.charAt(0) || "U"}
+            </div>
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-sm font-bold text-gray-800 truncate">
+                {user?.full_name || "Usuario"}
+              </span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                {user?.role?.[0] || "Staff"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors w-full"
+        >
+          <LogOut size={20} />
+          <span>Cerrar Sesión</span>
+        </button>
 
         <div className="p-4 border-t border-orange-100 bg-orange-50/30 text-xs text-center text-orange-400/80 font-medium">
           v0.1.0 Alpha

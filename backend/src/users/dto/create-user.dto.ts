@@ -30,7 +30,7 @@ export class CreateUserDto {
   })
   @IsString()
   @MinLength(1)
-  fullName: string;
+  full_name: string;
 
   @ApiProperty({
     example: ['user', 'admin'],
@@ -40,5 +40,5 @@ export class CreateUserDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  roles?: string[];
+  role?: string[];
 }

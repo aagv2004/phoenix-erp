@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Building2, Store, Activity, WifiOff, Loader2 } from "lucide-react"; // Nuevos iconos
 import client from "../api/client";
 import StatCard from "../components/StatCard";
+import { useAuthStore } from "../store/authStore";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -12,6 +13,13 @@ export default function DashboardPage() {
   // Estados de carga y error separados
   const [loading, setLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+
+  const user = useAuthStore((state) => state.user);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -70,6 +78,7 @@ export default function DashboardPage() {
   };
 
   const statusCard = getSystemStatusCard();
+  const displayName = isHydrated ? user?.full_name || "Usuario" : "Cargando...";
 
   return (
     <div className="space-y-8">
@@ -120,10 +129,13 @@ export default function DashboardPage() {
       ) : (
         <div className="bg-gradient-to-r from-orange-50 to-white border-l-4 border-orange-500 p-6 rounded-r-lg shadow-sm">
           <h3 className="text-lg font-bold text-orange-800">
-            ¡Bienvenido a Phoenix ERP! 🦅
+            ¡Bienvenido, {displayName}{" "}
+            <span className="text-orange-500">a Phoenix ERP! 🦅</span>
           </h3>
-          <p className="mt-2 text-orange-700">
-            Utiliza el menú lateral para gestionar tus Empresas y Sucursales.
+          <p className="mt-2 text-gray-600">
+            Rol:{" "}
+            <span className="capitalize font-medium">{user?.role?.[0]}</span> |
+            Resumen de operaciones en tiempo real.
           </p>
         </div>
       )}
