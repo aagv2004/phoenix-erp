@@ -7,13 +7,12 @@ on:
     branches: ["main", "develop"]
 
 jobs:
-  # TRABAJO 1: El Backend (Lo que ya tenías)
   check-backend:
     name: Backend Build & Lint
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./backend # 👈 Zona Backend
+        working-directory: ./backend
 
     steps:
       - uses: actions/checkout@v4
@@ -24,19 +23,20 @@ jobs:
           cache: "npm"
           cache-dependency-path: backend/package-lock.json
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       - name: Run Linter
         run: npm run lint
       - name: Build Application
         run: npm run build
+      # - name: Run Tests
+      #   run: npm run test
 
-  # TRABAJO 2: El Frontend (Lo nuevo)
   check-frontend:
     name: Frontend Build
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./frontend # 👈 Zona Frontend
+        working-directory: ./frontend
 
     steps:
       - uses: actions/checkout@v4
@@ -48,6 +48,5 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
         run: npm ci
-      # Nota: Vite hace el chequeo de tipos al compilar
       - name: Build Application
         run: npm run build
