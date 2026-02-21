@@ -36,7 +36,7 @@ export class Product {
   updated_at: Date;
 
   // Relación: Muchos productos pertenecen a una empresa
-  @ManyToOne(() => Company, (company) => company.id)
+  @ManyToOne(() => Company, (company) => company.products)
   @JoinColumn({ name: 'company_id' }) // Nombre de la columna en la DB
   company: Company;
 }

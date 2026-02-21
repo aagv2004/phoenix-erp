@@ -3,7 +3,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   Min,
 } from 'class-validator';
 
@@ -27,8 +26,4 @@ export class CreateProductDto {
   @IsNumber()
   @IsOptional()
   min_stock?: number;
-
-  @IsUUID()
-  @IsNotEmpty()
-  company_id: string; // Necesitamos saber a qué empresa pertenece el producto
 }

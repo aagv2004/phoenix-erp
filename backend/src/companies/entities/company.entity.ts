@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Branch } from '../../branches/entities/branch.entity'; // <--- Importar esto
 import { Product } from '../../products/entities/product.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('companies')
 export class Company {
@@ -24,4 +25,7 @@ export class Company {
   // Nueva relación con productos
   @OneToMany(() => Product, (product) => product.company)
   products: Product[];
+
+  @OneToMany(() => User, (user) => user.company)
+  users: User[];
 }

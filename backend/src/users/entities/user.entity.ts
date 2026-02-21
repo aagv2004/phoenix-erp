@@ -1,9 +1,12 @@
+import { Company } from '../../companies/entities/company.entity';
 import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 
 @Entity('users') // Nombre de la tabla en Postgres
@@ -41,4 +44,13 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({
+    nullable: true,
+  })
+  company_id: string;
+
+  @ManyToOne(() => Company, (company) => company.users)
+  @JoinColumn({ name: 'company_id' })
+  company: Company;
 }

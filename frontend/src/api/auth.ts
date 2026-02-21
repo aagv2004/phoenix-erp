@@ -1,4 +1,5 @@
 import client from "./client";
+import type { User } from "../types/user";
 
 export interface LoginCredentials {
   email: string;
@@ -6,12 +7,7 @@ export interface LoginCredentials {
 }
 
 export interface LoginResponse {
-  user: {
-    id: string;
-    email: string;
-    full_name: string;
-    role: string[];
-  };
+  user: User;
   access_token: string;
 }
 

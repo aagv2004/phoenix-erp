@@ -91,6 +91,18 @@ export class UsersService {
     return user;
   }
 
+  async findOneWithCompany(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['company'],
+    });
+    if (!user)
+      throw new BadRequestException(
+        'Usuario no encontrado o sin empresa asignada',
+      );
+    return user;
+  }
+
   // Manejo de errores centralizado (por si el email ya existe)
   private handleDBErrors(error: any): never {
     if (error.code === '23505') {

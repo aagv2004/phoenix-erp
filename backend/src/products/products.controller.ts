@@ -6,11 +6,13 @@ import {
   Param,
   ParseUUIDPipe,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
 
 @ApiTags('products')
 @ApiBearerAuth()
@@ -20,8 +22,9 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+  create(@Req() req: Request, @Body() createProductDto: CreateProductDto) {
+    const userId = (req.user as any).userId;
+    return this.productsService.create(createProductDto, userId);
   }
 
   @Get()

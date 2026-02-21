@@ -1,5 +1,11 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Building2, Store, LayoutDashboard, LogOut } from "lucide-react";
+import {
+  Building2,
+  Store,
+  LayoutDashboard,
+  LogOut,
+  Package2,
+} from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { useSyncExternalStore } from "react";
 
@@ -24,6 +30,7 @@ export default function Layout() {
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+    { path: "/inventory", label: "Inventario", icon: <Package2 size={20} /> },
     { path: "/companies", label: "Empresas", icon: <Building2 size={20} /> },
     { path: "/branches", label: "Sucursales", icon: <Store size={20} /> },
   ];

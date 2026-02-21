@@ -1,21 +1,32 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    private readonly usersService: UsersService,
   ) {}
 
-  async create(createProductDto: CreateProductDto) {
-    // Creamos la instancia. Nota: TypeORM mapeará company_id automáticamente si le pasamos el objeto
+  async create(createProductDto: CreateProductDto, userId: string) {
+    const user = await this.usersService.findOneWithCompany(userId);
+
+    if (!user.company?.id) {
+      throw new BadRequestException('El usuario no tiene empresa asignada');
+    }
+
     const product = this.productRepository.create({
       ...createProductDto,
-      company: { id: createProductDto.company_id } as any,
+      company: { id: user.company_id } as any,
     });
     return await this.productRepository.save(product);
   }
