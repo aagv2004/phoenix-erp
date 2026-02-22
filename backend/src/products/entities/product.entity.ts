@@ -6,8 +6,10 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
+import { StockLevel } from '../../inventory/entities/stock-level.entity';
 
 @Entity('products')
 export class Product {
@@ -34,6 +36,9 @@ export class Product {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => StockLevel, (stock) => stock.product)
+  stock_levels: StockLevel[];
 
   // Relación: Muchos productos pertenecen a una empresa
   @ManyToOne(() => Company, (company) => company.products)

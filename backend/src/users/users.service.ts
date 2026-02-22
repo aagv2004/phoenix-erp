@@ -40,9 +40,9 @@ export class UsersService {
       await this.userRepository.save(user);
 
       // 5. Limpiar el retorno (para no enviar el hash al frontend)
-      delete user.password;
+      const { password: _pwd, ...userWithoutPassword } = user;
 
-      return user;
+      return userWithoutPassword;
     } catch (error) {
       this.handleDBErrors(error);
     }
@@ -58,22 +58,39 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    const user = await this.userRepository.findOneBy({ id });
+    // Usamos findOne con relations en lugar de findOneBy
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['company', 'branch'], // Traemos la data de las tablas vinculadas
+    });
+
     if (!user) throw new BadRequestException('Usuario no encontrado');
     return user;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
+    const { password, ...toUpdate } = updateUserDto;
+
     const user = await this.userRepository.preload({
       id: id,
-      ...updateUserDto,
+      ...toUpdate,
     });
-    if (!user) throw new BadRequestException('Usuario no encontrado');
 
-    // Si viniera password en el update, habría que encriptarla de nuevo aquí
-    // Por ahora asumimos update simple.
+    if (!user)
+      throw new BadRequestException(`Usuario con id ${id} no encontrado`);
 
-    return this.userRepository.save(user);
+    if (password) {
+      user.password = bcrypt.hashSync(password, 10);
+    }
+
+    try {
+      await this.userRepository.save(user);
+
+      const { password: _pwd, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    } catch (error) {
+      this.handleDBErrors(error);
+    }
   }
 
   async remove(id: string) {
@@ -85,7 +102,16 @@ export class UsersService {
   async findOneByEmail(email: string) {
     const user = await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'password', 'role', 'full_name', 'isActive'],
+      select: [
+        'id',
+        'email',
+        'password',
+        'role',
+        'full_name',
+        'isActive',
+        'company_id',
+        'branch_id',
+      ],
     });
 
     return user;
@@ -94,7 +120,7 @@ export class UsersService {
   async findOneWithCompany(id: string) {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['company'],
+      relations: ['company', 'branch'],
     });
     if (!user)
       throw new BadRequestException(

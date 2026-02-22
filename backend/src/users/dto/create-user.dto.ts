@@ -2,10 +2,11 @@ import {
   IsEmail,
   IsString,
   MinLength,
-  IsArray,
+  IsEnum,
   IsOptional,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { UserRole } from '../enums/roles.enum';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -33,12 +34,14 @@ export class CreateUserDto {
   full_name: string;
 
   @ApiProperty({
-    example: ['user', 'admin'],
-    description: 'Roles del sistema',
+    example: UserRole.EMPLEADO,
+    description: 'Rol del usuario en el sistema',
+    enum: UserRole,
     required: false,
   })
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  role?: string[];
+  @IsEnum(UserRole, {
+    message: 'El rol debe ser uno de los valores permitidos',
+  })
+  role?: UserRole;
 }

@@ -1,5 +1,13 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
+import { User } from '../../users/entities/user.entity';
+import { StockLevel } from '../../inventory/entities/stock-level.entity';
 
 @Entity('branches')
 export class Branch {
@@ -12,9 +20,12 @@ export class Branch {
   @Column('text')
   address: string;
 
-  // RELACIÓN MÁGICA 🔗
-  // Una Sucursal (Many) pertenece a Una Empresa (One)
-  // onDelete: 'CASCADE' significa que si borras la empresa, se borran sus sucursales solas.
+  @OneToMany(() => User, (user) => user.branch)
+  users: User[];
+
+  @OneToMany(() => StockLevel, (stock) => stock.branch)
+  stock_levels: StockLevel[];
+
   @ManyToOne(() => Company, (company) => company.branches, {
     onDelete: 'CASCADE',
   })

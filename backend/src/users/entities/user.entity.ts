@@ -1,4 +1,6 @@
 import { Company } from '../../companies/entities/company.entity';
+import { UserRole } from '../enums/roles.enum';
+import { Branch } from '../../branches/entities/branch.entity';
 import {
   Column,
   Entity,
@@ -32,11 +34,12 @@ export class User {
   })
   isActive: boolean;
 
-  @Column('text', {
-    array: true,
-    default: ['user'], // Por defecto son usuarios normales (luego agregamos 'admin')
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.EMPLEADO,
   })
-  role: string[];
+  role: UserRole;
 
   // Auditoría: Cuándo se creó y cuándo se actualizó
   @CreateDateColumn()
@@ -44,6 +47,15 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({
+    nullable: true,
+  })
+  branch_id: string;
+
+  @ManyToOne(() => Branch, (branch) => branch.users)
+  @JoinColumn({ name: 'branch_id' })
+  branch: Branch;
 
   @Column({
     nullable: true,
