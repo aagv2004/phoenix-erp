@@ -30,6 +30,9 @@ export class Product {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   cost: number;
 
+  @Column({ type: 'int', default: 0 })
+  min_stock: number;
+
   @ManyToOne(() => Company, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'company_id' })
   company: Company;

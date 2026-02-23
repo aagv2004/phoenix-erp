@@ -4,7 +4,9 @@ export interface Product {
   description?: string;
   sku: string;
   price: number;
+  cost?: number;
   min_stock: number;
   company_id: string;
-  created_at: string;
+  createdAt: string;
+  updatedAt: string;
 }

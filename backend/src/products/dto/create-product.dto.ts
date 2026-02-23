@@ -29,6 +29,11 @@ export class CreateProductDto {
   @Min(0)
   cost?: number;
 
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  min_stock?: number;
+
   @IsUUID()
   company_id: string;
 

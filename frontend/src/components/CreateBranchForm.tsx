@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import client from "../api/client";
 import type { Company } from "../types/company";
 import type { Branch } from "../types/branch"; // Importamos el tipo Branch
+import { getErrorMessage } from "../utils/errorHandling";
+import { showErrorToast, showSuccessToast } from "../utils/toast";
 
 interface Props {
   onSuccess: () => void;
@@ -48,11 +50,11 @@ export default function CreateBranchForm({
       if (branchToEdit) {
         // ACTUALIZAR (PATCH)
         await client.patch(`/branches/${branchToEdit.id}`, data);
-        // alert("Sucursal actualizada");
+        showSuccessToast("Sucursal actualizada correctamente");
       } else {
         // CREAR (POST)
         await client.post("/branches", data);
-        // alert("Sucursal creada");
+        showSuccessToast("Sucursal creada correctamente");
       }
 
       // Limpiar y avisar al padre
@@ -62,8 +64,9 @@ export default function CreateBranchForm({
       }
       onSuccess();
     } catch (error) {
-      console.error(error);
-      alert("Error al guardar la sucursal");
+      const message = getErrorMessage(error);
+      console.error("Error al guardar la sucursal:", error);
+      showErrorToast(message);
     } finally {
       setIsSubmitting(false);
     }

@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import InventoryPage from "./pages/InventoryPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 
 function App() {
   return (
@@ -17,7 +18,13 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="inventory" element={<InventoryPage />} />
-            <Route path="companies" element={<CompaniesPage />} />
+            <Route
+              element={
+                <RoleProtectedRoute allowedRoles={["SUPERADMIN", "DIRECTOR"]} />
+              }
+            >
+              <Route path="companies" element={<CompaniesPage />} />
+            </Route>
             <Route path="branches" element={<BranchesPage />} />
           </Route>
         </Route>

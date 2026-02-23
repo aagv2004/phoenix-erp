@@ -6,7 +6,7 @@ import * as z from "zod";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import { loginRequest } from "../api/auth";
 import { useAuthStore } from "../store/authStore";
-import { isAxiosError } from "axios";
+import { getErrorMessage } from "../utils/errorHandling";
 
 const loginSchema = z.object({
   email: z
@@ -43,15 +43,8 @@ export default function LoginPage() {
       setLogin(response.access_token, response.user);
       navigate("/");
     } catch (error) {
-      if (isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          setApiError("Correo o contraseña incorrectos");
-        } else {
-          setApiError("Error al conectar con el servidor. Intenta nuevamente.");
-        }
-      } else {
-        setApiError("Error inesperado. Intenta nuevamente.");
-      }
+      const message = getErrorMessage(error);
+      setApiError(message);
     }
   };
 

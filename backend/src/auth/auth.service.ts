@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -10,7 +11,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(email: string, password: string) {
+  async login({ email, password }: LoginDto) {
     const user = await this.usersService.findOneByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Correo incorrecto');
@@ -26,6 +27,8 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
+      company_id: user.company_id,
+      branch_id: user.branch_id,
     };
 
     return {
@@ -34,6 +37,8 @@ export class AuthService {
         email: user.email,
         full_name: user.full_name,
         role: user.role,
+        company_id: user.company_id,
+        branch_id: user.branch_id,
       },
       access_token: this.jwtService.sign(payload),
     };

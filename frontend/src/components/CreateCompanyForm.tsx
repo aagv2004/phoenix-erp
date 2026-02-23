@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import client from "../api/client.ts";
 import type { Company } from "../types/company.ts";
 import { formatRut, validateRut, cleanRut } from "../utils/rutUtils.ts";
+import { getErrorMessage } from "../utils/errorHandling";
+import { showErrorToast, showSuccessToast } from "../utils/toast";
 
 interface Props {
   onSuccess: () => void;
@@ -63,7 +65,7 @@ export default function CreateCompanyForm({
     const rutLimpio = cleanRut(rut);
 
     if (rutLimpio && !validateRut(rut)) {
-      alert("El RUT ingresado no es válido.");
+      showErrorToast("El RUT ingresado no es válido.");
       return;
     }
 
@@ -79,10 +81,10 @@ export default function CreateCompanyForm({
     try {
       if (companyToEdit) {
         await client.patch(`/companies/${companyToEdit.id}`, data);
-        alert("Empresa actualizada con éxito.");
+        showSuccessToast("Empresa actualizada con éxito");
       } else {
         await client.post("/companies", data);
-        alert("Empresa creada con éxito.");
+        showSuccessToast("Empresa creada con éxito");
       }
 
       setRut("");
@@ -93,8 +95,9 @@ export default function CreateCompanyForm({
 
       onSuccess();
     } catch (error) {
-      console.error(error);
-      alert("Error creando la empresa. Revisa la consola para más detalles.");
+      const message = getErrorMessage(error);
+      console.error("Error creando la empresa:", error);
+      showErrorToast(message);
     } finally {
       setIsSubmitting(false);
     }

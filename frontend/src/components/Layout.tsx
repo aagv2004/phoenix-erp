@@ -29,10 +29,30 @@ export default function Layout() {
   };
 
   const navItems = [
-    { path: "/", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-    { path: "/inventory", label: "Inventario", icon: <Package2 size={20} /> },
-    { path: "/companies", label: "Empresas", icon: <Building2 size={20} /> },
-    { path: "/branches", label: "Sucursales", icon: <Store size={20} /> },
+    {
+      path: "/",
+      label: "Dashboard",
+      icon: <LayoutDashboard size={20} />,
+      roles: ["SUPERADMIN", "DIRECTOR", "GERENTE", "EMPLEADO"],
+    },
+    {
+      path: "/inventory",
+      label: "Inventario",
+      icon: <Package2 size={20} />,
+      roles: ["SUPERADMIN", "DIRECTOR", "GERENTE", "EMPLEADO"],
+    },
+    {
+      path: "/companies",
+      label: "Empresas",
+      icon: <Building2 size={20} />,
+      roles: ["SUPERADMIN", "DIRECTOR"],
+    },
+    {
+      path: "/branches",
+      label: "Sucursales",
+      icon: <Store size={20} />,
+      roles: ["SUPERADMIN", "DIRECTOR", "GERENTE", "EMPLEADO"],
+    },
   ];
 
   if (!isHydrated) return null;
@@ -50,6 +70,10 @@ export default function Layout() {
 
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => {
+            const role = user?.role;
+            if (role && !item.roles.includes(role)) {
+              return null;
+            }
             const isActive = location.pathname === item.path;
             return (
               <Link

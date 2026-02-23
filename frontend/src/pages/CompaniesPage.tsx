@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useCompanies } from "../hooks/useCompanies";
-import CompanyList from "../components/CompanyList";
+import { CompanyList } from "../components/CompanyList";
 import CreateCompanyForm from "../components/CreateCompanyForm";
 import type { Company } from "../types/company";
 
 export default function CompaniesPage() {
-  const { companies, fetchCompanies, deleteCompany } = useCompanies();
+  const { companies, fetchCompanies, deleteCompany, loading } = useCompanies();
   const [companyToEdit, setCompanyToEdit] = useState<Company | null>(null);
 
   return (
@@ -24,6 +24,7 @@ export default function CompaniesPage() {
         companies={companies}
         onDelete={deleteCompany}
         onEdit={setCompanyToEdit}
+        isLoading={loading}
       />
     </div>
   );

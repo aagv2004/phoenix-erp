@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { createProduct } from "../api/products";
 import { Save, X } from "lucide-react";
+import { useAuthStore } from "../store/authStore";
+import { showErrorToast, showSuccessToast } from "../utils/toast";
 
 interface Props {
   onSuccess: () => void;
@@ -9,27 +11,43 @@ interface Props {
 
 export default function ProductForm({ onSuccess, onCancel }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
+    if (!user?.company_id) {
+      showErrorToast(
+        "No se pudo determinar la empresa del usuario. Vuelve a iniciar sesión.",
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
     const formData = new FormData(e.currentTarget);
+    const minStockValue = formData.get("min_stock");
     const payload = {
       name: formData.get("name") as string,
       description: (formData.get("description") as string) || undefined,
       sku: formData.get("sku") as string,
       price: Number(formData.get("price")),
-      min_stock: Number(formData.get("min_stock")),
+      min_stock:
+        minStockValue !== null && minStockValue !== ""
+          ? Number(minStockValue)
+          : undefined,
+      company_id: user.company_id,
     };
 
     try {
       await createProduct(payload);
-      alert("Producto creado con éxito");
+      showSuccessToast("Producto creado con éxito");
       onSuccess();
     } catch (error) {
       console.error(error);
-      alert("Error creando el producto. Revisa la consola para más detalles.");
+      showErrorToast(
+        "Error creando el producto. Revisa la consola para más detalles.",
+      );
     } finally {
       setIsSubmitting(false);
     }

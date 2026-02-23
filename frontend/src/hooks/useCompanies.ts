@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import client from "../api/client";
 import type { Company } from "../types/company";
+import { getErrorMessage } from "../utils/errorHandling";
+import { showErrorToast, showSuccessToast } from "../utils/toast";
 
 export function useCompanies() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -15,8 +17,10 @@ export function useCompanies() {
       setCompanies(response.data);
       setError("");
     } catch (err) {
-      console.error(err);
-      setError("Error cargando empresas");
+      const message = getErrorMessage(err);
+      console.error("Error cargando empresas:", err);
+      setError(message);
+      showErrorToast(message);
     } finally {
       setLoading(false);
     }
@@ -28,17 +32,15 @@ export function useCompanies() {
   }, [fetchCompanies]);
 
   const deleteCompany = async (id: string) => {
-    if (!window.confirm("¿Estás seguro que deseas eliminar esta empresa?"))
-      return;
-
     try {
       await client.delete(`/companies/${id}`);
       // Recargamos la lista después de borrar
       await fetchCompanies();
-      alert("Empresa eliminada correctamente.");
+      showSuccessToast("Empresa eliminada correctamente");
     } catch (err) {
-      console.error(err);
-      alert("Error al eliminar la empresa.");
+      const message = getErrorMessage(err);
+      console.error("Error al eliminar la empresa:", err);
+      showErrorToast(message);
     }
   };
 

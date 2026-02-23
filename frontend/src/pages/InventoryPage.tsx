@@ -3,19 +3,29 @@ import { getProducts } from "../api/products";
 import type { Product } from "../types/product";
 import { Search, AlertTriangle, Plus, Package, XIcon } from "lucide-react";
 import ProductForm from "../components/ProductForm";
+import { getErrorMessage } from "../utils/errorHandling";
+import { showErrorToast } from "../utils/toast";
+import { useAuthStore } from "../store/authStore";
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const user = useAuthStore((state) => state.user);
+  const canCreateProduct =
+    user?.role === "SUPERADMIN" ||
+    user?.role === "DIRECTOR" ||
+    user?.role === "GERENTE";
 
   const loadData = async () => {
     try {
       const { data } = await getProducts();
       setProducts(data);
     } catch (error) {
+      const message = getErrorMessage(error);
       console.error("Error loading products:", error);
+      showErrorToast(message);
     } finally {
       setLoading(false);
     }
@@ -48,24 +58,26 @@ export default function InventoryPage() {
             Administra el catálogo global de productos de tu empresa.
           </p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-orange-200 transition-all active:scale-95"
-        >
-          {showForm ? (
-            <>
-              <XIcon size={20} /> Cerrar Formulario
-            </>
-          ) : (
-            <>
-              <Plus size={20} /> Nuevo Producto
-            </>
-          )}
-        </button>
+        {canCreateProduct && (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-orange-200 transition-all active:scale-95"
+          >
+            {showForm ? (
+              <>
+                <XIcon size={20} /> Cerrar Formulario
+              </>
+            ) : (
+              <>
+                <Plus size={20} /> Nuevo Producto
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* FORMULARIO */}
-      {showForm && (
+      {canCreateProduct && showForm && (
         <ProductForm
           onSuccess={handleSuccess}
           onCancel={() => setShowForm(false)}

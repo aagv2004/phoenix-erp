@@ -3,6 +3,8 @@ import { Building2, Store, Activity, WifiOff, Loader2 } from "lucide-react"; // 
 import client from "../api/client";
 import StatCard from "../components/StatCard";
 import { useAuthStore } from "../store/authStore";
+import { getErrorMessage } from "../utils/errorHandling";
+import { showErrorToast } from "../utils/toast";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -27,9 +29,15 @@ export default function DashboardPage() {
       setIsError(false);
 
       try {
-        // Intentamos cargar todo junto
+        const role = user?.role;
+        const canSeeCompanies = role === "SUPERADMIN" || role === "DIRECTOR";
+
+        const companiesPromise = canSeeCompanies
+          ? client.get("/companies")
+          : Promise.resolve({ data: [] as unknown[] });
+
         const [companiesRes, branchesRes] = await Promise.all([
-          client.get("/companies"),
+          companiesPromise,
           client.get("/branches"),
         ]);
 
@@ -38,7 +46,9 @@ export default function DashboardPage() {
           branchesCount: branchesRes.data.length,
         });
       } catch (err) {
+        const message = getErrorMessage(err);
         console.error("Error conectando con el backend:", err);
+        showErrorToast(message);
         // Si falla, activamos el modo "Sin Conexión"
         setIsError(true);
       } finally {
@@ -47,7 +57,7 @@ export default function DashboardPage() {
     };
 
     loadData();
-  }, []);
+  }, [user?.role]);
 
   // Lógica para decidir qué mostrar en la tarjeta de Estado
   const getSystemStatusCard = () => {
