@@ -6,49 +6,48 @@ import {
   Patch,
   Param,
   Delete,
-  ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from './enums/roles.enum';
 
-@ApiTags('users')
 @Controller('users')
-@Controller('users')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.' })
-  @ApiResponse({
-    status: 400,
-    description: 'Datos incorrectos o email duplicado.',
-  })
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR)
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
   @Get()
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR, UserRole.GERENTE)
   findAll() {
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR, UserRole.GERENTE)
+  findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
   @Patch(':id')
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR)
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
+  @Roles(UserRole.SUPERADMIN)
+  remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
 }

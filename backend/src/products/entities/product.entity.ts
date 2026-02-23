@@ -1,20 +1,22 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
+  PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
 } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
-import { StockLevel } from '../../inventory/entities/stock-level.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('products')
 export class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({ unique: true })
+  sku: string;
 
   @Column()
   name: string;
@@ -22,26 +24,30 @@ export class Product {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ unique: true })
-  sku: string;
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
-  @Column({ type: 'int', default: 0 })
-  min_stock: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  cost: number;
 
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
-
-  @OneToMany(() => StockLevel, (stock) => stock.product)
-  stock_levels: StockLevel[];
-
-  // Relación: Muchos productos pertenecen a una empresa
-  @ManyToOne(() => Company, (company) => company.products)
-  @JoinColumn({ name: 'company_id' }) // Nombre de la columna en la DB
+  @ManyToOne(() => Company, { eager: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'company_id' })
   company: Company;
+
+  @Column({ name: 'company_id' })
+  company_id: string;
+
+  // 👇 AGREGAR ESTO: Usuario que creó el producto
+  @ManyToOne(() => User, { eager: true, onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'created_by' })
+  createdBy: User;
+
+  @Column({ name: 'created_by', nullable: true })
+  created_by: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 }

@@ -1,29 +1,39 @@
 import {
-  IsNotEmpty,
+  IsString,
   IsNumber,
   IsOptional,
-  IsString,
+  IsUUID,
+  MinLength,
   Min,
 } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
-  @IsNotEmpty()
+  @MinLength(1)
+  sku: string;
+
+  @IsString()
+  @MinLength(1)
   name: string;
 
-  @IsString()
   @IsOptional()
-  description?: string;
-
   @IsString()
-  @IsNotEmpty()
-  sku: string;
+  description?: string;
 
   @IsNumber()
   @Min(0)
   price: number;
 
-  @IsNumber()
   @IsOptional()
-  min_stock?: number;
+  @IsNumber()
+  @Min(0)
+  cost?: number;
+
+  @IsUUID()
+  company_id: string;
+
+  // 👇 Este campo NO viene del body, se agrega automáticamente
+  @IsOptional()
+  @IsUUID()
+  created_by?: string;
 }

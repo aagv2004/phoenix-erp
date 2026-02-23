@@ -28,6 +28,7 @@ export class CreateMovementDto {
   @IsString()
   notes?: string;
 
+  // 👇 Este campo NO viene del body, se agrega automáticamente desde el token JWT
   @IsOptional()
   @IsUUID()
   userId?: string;

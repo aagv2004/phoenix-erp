@@ -247,6 +247,48 @@ export class InventoryService {
     }
   }
 
+  async transferBetweenBranches(transferDto: {
+    productId: string;
+    fromBranchId: string;
+    toBranchId: string;
+    quantity: number;
+    notes?: string;
+    userId?: string;
+  }) {
+    const { productId, fromBranchId, toBranchId, quantity, notes, userId } =
+      transferDto;
+
+    if (fromBranchId === toBranchId) {
+      throw new BadRequestException('No puedes transferir a la misma sucursal');
+    }
+
+    const exitMovement = await this.recordMovement({
+      type: MovementType.TRANSFER_OUT,
+      productId,
+      branchId: fromBranchId,
+      quantity,
+      notes: notes || `Transferencia a otra sucursal`,
+      userId,
+      relatedBranchId: toBranchId,
+    });
+
+    const entryMovement = await this.recordMovement({
+      type: MovementType.TRANSFER_IN,
+      productId,
+      branchId: toBranchId,
+      quantity,
+      notes: notes || `Transferencia desde otra sucursal`,
+      userId,
+      relatedBranchId: fromBranchId,
+    });
+
+    return {
+      from: exitMovement,
+      to: entryMovement,
+      message: `Transferencia de ${quantity} unidades del producto ${productId} desde la sucursal ${fromBranchId} a la sucursal ${toBranchId} realizada exitosamente.`,
+    };
+  }
+
   async getMovementHistory(filters?: {
     branchId?: string;
     productId?: string;

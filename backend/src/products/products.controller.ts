@@ -3,28 +3,35 @@ import {
   Get,
   Post,
   Body,
+  Patch,
   Param,
-  ParseUUIDPipe,
+  Delete,
   UseGuards,
-  Req,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { UserRole } from '../users/enums/roles.enum';
 
-@ApiTags('products')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt')) // Protegemos el inventario con JWT
 @Controller('products')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  create(@Req() req: Request, @Body() createProductDto: CreateProductDto) {
-    const userId = (req.user as any).userId;
-    return this.productsService.create(createProductDto, userId);
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR, UserRole.GERENTE)
+  create(
+    @Body() createProductDto: CreateProductDto,
+    @GetUser('id') userId: string, // 👈 Extraer el ID del usuario autenticado
+  ) {
+    // Agregar automáticamente el usuario que creó el producto
+    return this.productsService.create({
+      ...createProductDto,
+      created_by: userId,
+    });
   }
 
   @Get()
@@ -33,7 +40,19 @@ export class ProductsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);
+  }
+
+  @Patch(':id')
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR, UserRole.GERENTE)
+  update(@Param('id') id: string, @Body() updateProductDto: any) {
+    return this.productsService.update(id, updateProductDto);
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR)
+  remove(@Param('id') id: string) {
+    return this.productsService.remove(id);
   }
 }

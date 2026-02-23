@@ -3,52 +3,50 @@ import {
   Get,
   Post,
   Body,
-  Param,
   Patch,
+  Param,
   Delete,
   UseGuards,
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { ApiTags } from '@nestjs/swagger/dist/decorators/api-use-tags.decorator';
-import { ApiBearerAuth } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../users/enums/roles.enum';
 
-@ApiTags('companies')
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
 @Controller('companies')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
-  // 1. Endpoint POST para crear
-  // Recibe el JSON, lo valida contra el DTO y se lo pasa al servicio
   @Post()
+  @Roles(UserRole.SUPERADMIN)
   create(@Body() createCompanyDto: CreateCompanyDto) {
     return this.companiesService.create(createCompanyDto);
   }
 
-  // 2. Endpoint GET para listar
-  // Llama al método simple findAll del servicio
   @Get()
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR)
   findAll() {
     return this.companiesService.findAll();
   }
 
-  // 3. Endpoint GET por ID
   @Get(':id')
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR)
   findOne(@Param('id') id: string) {
     return this.companiesService.findOne(id);
   }
 
-  // 4. Endpoint PATCH por ID
   @Patch(':id')
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR)
   update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto) {
     return this.companiesService.update(id, updateCompanyDto);
   }
 
   @Delete(':id')
+  @Roles(UserRole.SUPERADMIN)
   remove(@Param('id') id: string) {
     return this.companiesService.remove(id);
   }

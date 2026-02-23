@@ -8,25 +8,39 @@ import {
   Delete,
   ParseUUIDPipe,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { CreateStockLevelDto } from './dto/create-stock-level.dto';
 import { UpdateStockLevelDto } from './dto/update-stock-level.dto';
 import { CreateMovementDto } from './dto/create-movement.dto';
 import { MovementType } from './enums/movement-type.enum';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { UserRole } from '../users/enums/roles.enum';
 
 @Controller('inventory')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
-  // ============== STOCK LEVELS ==============
+  // ============ STOCK LEVELS ============
 
   @Post()
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR, UserRole.GERENTE)
   create(@Body() createStockLevelDto: CreateStockLevelDto) {
     return this.inventoryService.create(createStockLevelDto);
   }
 
   @Get()
+  @Roles(
+    UserRole.SUPERADMIN,
+    UserRole.DIRECTOR,
+    UserRole.GERENTE,
+    UserRole.EMPLEADO,
+  )
   findAll() {
     return this.inventoryService.findAll();
   }
@@ -41,13 +55,11 @@ export class InventoryController {
     return this.inventoryService.findByProduct(productId);
   }
 
-  // 🚨 ENDPOINT DE ALERTAS
   @Get('alerts/low-stock')
   getLowStockAlerts(@Query('branchId') branchId?: string) {
     return this.inventoryService.getLowStockAlerts(branchId);
   }
 
-  // 📊 ENDPOINT DE ESTADÍSTICAS
   @Get('stats/overview')
   getInventoryStats(@Query('branchId') branchId?: string) {
     return this.inventoryService.getInventoryStats(branchId);
@@ -59,6 +71,7 @@ export class InventoryController {
   }
 
   @Patch(':id')
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR, UserRole.GERENTE)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateStockLevelDto: UpdateStockLevelDto,
@@ -67,15 +80,29 @@ export class InventoryController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.SUPERADMIN, UserRole.DIRECTOR)
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.inventoryService.remove(id);
   }
 
-  // ============== MOVIMIENTOS DE INVENTARIO ==============
+  // ============ INVENTORY MOVEMENTS ============
 
   @Post('movements')
-  recordMovement(@Body() createMovementDto: CreateMovementDto) {
-    return this.inventoryService.recordMovement(createMovementDto);
+  @Roles(
+    UserRole.SUPERADMIN,
+    UserRole.DIRECTOR,
+    UserRole.GERENTE,
+    UserRole.EMPLEADO,
+  ) // 👈 Empleados pueden registrar movimientos (POS)
+  recordMovement(
+    @Body() createMovementDto: CreateMovementDto,
+    @GetUser('id') userId: string, // 👈 Extraer el ID del usuario autenticado
+  ) {
+    // Agregar automáticamente el userId al movimiento
+    return this.inventoryService.recordMovement({
+      ...createMovementDto,
+      userId,
+    });
   }
 
   @Get('movements/history')
