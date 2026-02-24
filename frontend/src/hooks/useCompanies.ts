@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import client from "../api/client";
 import type { Company } from "../types/company";
-import { getErrorMessage } from "../utils/errorHandling";
-import { showErrorToast, showSuccessToast } from "../utils/toast";
+import { getErrorMessage, isForbiddenError } from "../utils/errorHandling";
+import { showErrorToast } from "../utils/toast";
+import { showSuccessToast } from "../utils/toast";
 
 export function useCompanies() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -16,9 +17,13 @@ export function useCompanies() {
       const response = await client.get("/companies");
       setCompanies(response.data);
       setError("");
-    } catch (err) {
-      const message = getErrorMessage(err);
-      console.error("Error cargando empresas:", err);
+    } catch (error) {
+      // Si es un 403, dejamos que el interceptor muestre el toast de permisos
+      if (isForbiddenError(error)) {
+        return;
+      }
+      const message = getErrorMessage(error);
+      console.error("Error cargando empresas:", error);
       setError(message);
       showErrorToast(message);
     } finally {

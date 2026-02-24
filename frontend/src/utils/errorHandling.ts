@@ -105,3 +105,8 @@ export function logError(error: unknown, context?: string): void {
     fullError: error,
   });
 }
+
+export const isForbiddenError = (error: unknown): boolean => {
+  const axiosError = error as AxiosError<BackendErrorResponse>;
+  return axiosError?.response?.status === 403;
+};

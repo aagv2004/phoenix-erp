@@ -129,6 +129,13 @@ export class UsersService {
     return user;
   }
 
+  async findProfileById(id: string) {
+    return this.userRepository.findOne({
+      where: { id },
+      relations: ['company', 'branch'],
+    });
+  }
+
   // Manejo de errores centralizado (por si el email ya existe)
   private handleDBErrors(error: any): never {
     if (error.code === '23505') {

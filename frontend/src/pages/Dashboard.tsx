@@ -5,6 +5,7 @@ import StatCard from "../components/StatCard";
 import { useAuthStore } from "../store/authStore";
 import { getErrorMessage } from "../utils/errorHandling";
 import { showErrorToast } from "../utils/toast";
+import type { Branch } from "../types/branch";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -19,6 +20,10 @@ export default function DashboardPage() {
   const user = useAuthStore((state) => state.user);
   const [isHydrated, setIsHydrated] = useState(false);
 
+  const normalizedRole = user?.role?.toUpperCase();
+  const isGlobalRole =
+    normalizedRole === "SUPERADMIN" || normalizedRole === "DIRECTOR";
+
   useEffect(() => {
     setIsHydrated(true);
   }, []);
@@ -29,7 +34,7 @@ export default function DashboardPage() {
       setIsError(false);
 
       try {
-        const role = user?.role;
+        const role = user?.role?.toUpperCase();
         const canSeeCompanies = role === "SUPERADMIN" || role === "DIRECTOR";
 
         const companiesPromise = canSeeCompanies
@@ -41,9 +46,22 @@ export default function DashboardPage() {
           client.get("/branches"),
         ]);
 
+        let branchesData: Branch[] = branchesRes.data;
+
+        if (
+          role &&
+          role !== "SUPERADMIN" &&
+          role !== "DIRECTOR" &&
+          user?.company_id
+        ) {
+          branchesData = branchesData.filter(
+            (branch) => branch.company?.id === user.company_id,
+          );
+        }
+
         setStats({
           companiesCount: companiesRes.data.length,
-          branchesCount: branchesRes.data.length,
+          branchesCount: branchesData.length,
         });
       } catch (err) {
         const message = getErrorMessage(err);
@@ -57,7 +75,7 @@ export default function DashboardPage() {
     };
 
     loadData();
-  }, [user?.role]);
+  }, [user?.role, user?.company_id]);
 
   // Lógica para decidir qué mostrar en la tarjeta de Estado
   const getSystemStatusCard = () => {
@@ -65,7 +83,7 @@ export default function DashboardPage() {
       return {
         title: "Estado del Sistema",
         value: "Verificando...",
-        icon: <Loader2 size={24} className="animate-spin" />, // Icono girando
+        icon: <Loader2 size={24} className="animate-spin" />,
         color: "bg-blue-500",
       };
     }
@@ -99,32 +117,6 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* GRILLA DE TARJETAS */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          title="Empresas Registradas"
-          // Si hay error, mostramos "-", si carga "...", si no el numero
-          value={isError ? "-" : loading ? "..." : stats.companiesCount}
-          icon={<Building2 size={24} />}
-          colorClass="bg-orange-500"
-        />
-
-        <StatCard
-          title="Sucursales Activas"
-          value={isError ? "-" : loading ? "..." : stats.branchesCount}
-          icon={<Store size={24} />}
-          colorClass="bg-orange-600" // Un tono más oscuro para variar
-        />
-
-        {/* TARJETA DINÁMICA DE ESTADO */}
-        <StatCard
-          title={statusCard.title}
-          value={statusCard.value}
-          icon={statusCard.icon}
-          colorClass={statusCard.color}
-        />
-      </div>
-
       {/* BANNER: Cambia si hay error */}
       {isError ? (
         <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-lg shadow-sm">
@@ -144,11 +136,56 @@ export default function DashboardPage() {
           </h3>
           <p className="mt-2 text-gray-600">
             Rol:{" "}
-            <span className="capitalize font-medium">{user?.role?.[0]}</span> |
+            <span className="uppercase font-mono text-orange-800">
+              {user?.role}
+            </span>
+            {user?.company && (
+              <>
+                <br />
+                Usted pertenece a la empresa:{" "}
+                <span className="font-mono text-orange-500">
+                  {user.company.name}
+                </span>
+              </>
+            )}{" "}
+            <br />
             Resumen de operaciones en tiempo real.
           </p>
         </div>
       )}
+
+      {/* GRILLA DE TARJETAS */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          title={isGlobalRole ? "Empresas Registradas" : "Tu empresa"}
+          value={
+            isGlobalRole
+              ? isError
+                ? "-"
+                : loading
+                  ? "..."
+                  : stats.companiesCount
+              : (user?.company?.name ?? "Sin empresa")
+          }
+          icon={<Building2 size={24} />}
+          colorClass="bg-orange-500"
+        />
+
+        <StatCard
+          title="Sucursales Activas"
+          value={isError ? "-" : loading ? "..." : stats.branchesCount}
+          icon={<Store size={24} />}
+          colorClass="bg-orange-600" // Un tono más oscuro para variar
+        />
+
+        {/* TARJETA DINÁMICA DE ESTADO */}
+        <StatCard
+          title={statusCard.title}
+          value={statusCard.value}
+          icon={statusCard.icon}
+          colorClass={statusCard.color}
+        />
+      </div>
     </div>
   );
 }

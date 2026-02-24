@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getProducts } from "../api/products";
 import type { Product } from "../types/product";
-import { Search, AlertTriangle, Plus, Package, XIcon } from "lucide-react";
+import { Search, AlertTriangle, Plus, Package, X } from "lucide-react";
 import ProductForm from "../components/ProductForm";
 import { getErrorMessage } from "../utils/errorHandling";
 import { showErrorToast } from "../utils/toast";
@@ -21,7 +21,22 @@ export default function InventoryPage() {
   const loadData = async () => {
     try {
       const { data } = await getProducts();
-      setProducts(data);
+
+      const role = user?.role?.toUpperCase();
+      let filtered = data;
+
+      if (
+        role &&
+        role !== "SUPERADMIN" &&
+        role !== "DIRECTOR" &&
+        user?.company_id
+      ) {
+        filtered = data.filter(
+          (product) => product.company_id === user.company_id,
+        );
+      }
+
+      setProducts(filtered);
     } catch (error) {
       const message = getErrorMessage(error);
       console.error("Error loading products:", error);
@@ -33,6 +48,7 @@ export default function InventoryPage() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredProducts = products.filter(
@@ -65,7 +81,7 @@ export default function InventoryPage() {
           >
             {showForm ? (
               <>
-                <XIcon size={20} /> Cerrar Formulario
+                <X size={20} /> Cerrar Formulario
               </>
             ) : (
               <>

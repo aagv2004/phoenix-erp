@@ -11,6 +11,10 @@ export interface LoginResponse {
   access_token: string;
 }
 
+export const getCurrentUser = () => {
+  return client.get<User>("/auth/me");
+};
+
 export const loginRequest = async (
   credentials: LoginCredentials,
 ): Promise<LoginResponse> => {

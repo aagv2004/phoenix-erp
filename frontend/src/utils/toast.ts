@@ -1,4 +1,5 @@
 import Swal from "sweetalert2";
+import type { PermissionDeniedContext } from "../types/permission-denied-context";
 
 const Toast = Swal.mixin({
   toast: true,
@@ -14,6 +15,36 @@ const Toast = Swal.mixin({
     toast.addEventListener("mouseleave", Swal.resumeTimer);
   },
 });
+
+const PERMISSION_TOAST_STORAGE_KEY = "phoenix_permission_toasts";
+
+const loadShownPermissionToasts = (): Set<string> => {
+  try {
+    const raw = localStorage.getItem(PERMISSION_TOAST_STORAGE_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw) as string[];
+    return new Set(arr);
+  } catch {
+    return new Set();
+  }
+};
+
+const saveShownPermissionToasts = (set: Set<string>) => {
+  try {
+    const arr = Array.from(set);
+    localStorage.setItem(PERMISSION_TOAST_STORAGE_KEY, JSON.stringify(arr));
+  } catch {
+    // No hacemos nada si falla el almacenamiento
+  }
+};
+
+const shownPermissionToasts = loadShownPermissionToasts();
+
+const getPermissionContextKey = (context?: PermissionDeniedContext): string => {
+  const method = context?.method?.toUpperCase() ?? "ANY";
+  const url = context?.url ?? "ANY";
+  return `${method}:${url}`;
+};
 
 export const showSuccessToast = (message: string) => {
   Toast.fire({
@@ -64,11 +95,34 @@ export const showConfirmDialog = async (
 };
 
 // Toast para errores de permisos (403)
-export const showPermissionDeniedToast = () => {
+export const showPermissionDeniedToast = (
+  context?: PermissionDeniedContext,
+) => {
+  const key = getPermissionContextKey(context);
+
+  if (shownPermissionToasts.has(key)) {
+    return;
+  }
+  shownPermissionToasts.add(key);
+  saveShownPermissionToasts(shownPermissionToasts);
+
+  const method = context?.method?.toUpperCase();
+
+  let title: string;
+  let text: string;
+
+  if (method === "GET") {
+    title = "🔒 Acceso restringido";
+    text = "Tienes permisos únicamente para ver esta información.";
+  } else {
+    title = "🔒 Acción no permitida para tu rol";
+    text = "Tu rol no tiene permisos para realizar esta acción";
+  }
+
   Toast.fire({
-    icon: "error",
-    title: "🔒 Acceso Denegado",
-    text: "Tu rol no tiene permisos para realizar esta acción",
+    icon: "info",
+    title,
+    text,
     timer: 4000,
   });
 };

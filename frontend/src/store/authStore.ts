@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "../types/user";
+import { getCurrentUser } from "../api/auth";
 
 interface AuthState {
   token: string | null;
@@ -8,6 +9,8 @@ interface AuthState {
   isAuth: boolean;
   setLogin: (token: string, user: User) => void;
   setLogout: () => void;
+
+  fetchCurrentUser?: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -19,6 +22,14 @@ export const useAuthStore = create<AuthState>()(
 
       setLogin: (token, user) => set({ token, user, isAuth: true }),
       setLogout: () => set({ token: null, user: null, isAuth: false }),
+      fetchCurrentUser: async () => {
+        try {
+          const { data } = await getCurrentUser();
+          set({ user: data, isAuth: true });
+        } catch (error) {
+          console.error("Error fetching current user:", error);
+        }
+      },
     }),
     {
       name: "auth-storage",

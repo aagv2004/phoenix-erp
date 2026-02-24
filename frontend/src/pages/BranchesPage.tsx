@@ -25,7 +25,22 @@ export default function BranchesPage() {
   const fetchBranches = async () => {
     try {
       const response = await client.get("/branches");
-      setBranches(response.data);
+      let data = response.data;
+
+      const role = user?.role?.toUpperCase();
+      if (
+        role &&
+        role !== "SUPERADMIN" &&
+        role !== "DIRECTOR" &&
+        user?.company_id
+      ) {
+        data = data.filter(
+          (branch: { company: { id: string | undefined } }) =>
+            branch.company?.id === user.company_id,
+        );
+      }
+
+      setBranches(data);
     } catch (error) {
       const message = getErrorMessage(error);
       console.error("Error fetching branches:", error);
@@ -38,6 +53,7 @@ export default function BranchesPage() {
       void fetchBranches();
     }, 0);
     return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Función Borrar

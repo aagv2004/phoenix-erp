@@ -7,7 +7,7 @@ import {
   Package2,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 const useHasHydrated = () => {
   return useSyncExternalStore(
@@ -20,8 +20,14 @@ const useHasHydrated = () => {
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, setLogout } = useAuthStore();
+  const { user, setLogout, fetchCurrentUser } = useAuthStore();
   const isHydrated = useHasHydrated();
+
+  useEffect(() => {
+    if (isHydrated && user && !user.company && fetchCurrentUser) {
+      void fetchCurrentUser();
+    }
+  }, [isHydrated, user, fetchCurrentUser]);
 
   const handleLogout = () => {
     setLogout();
@@ -70,7 +76,7 @@ export default function Layout() {
 
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => {
-            const role = user?.role;
+            const role = user?.role?.toUpperCase();
             if (role && !item.roles.includes(role)) {
               return null;
             }
@@ -110,8 +116,26 @@ export default function Layout() {
                 {user?.full_name || "Usuario"}
               </span>
               <span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
-                {user?.role?.[0] || "Staff"}
+                {user?.role || "SIN ROL"}
               </span>
+
+              {user?.company && (
+                <span className="text-[11px] text-gray-500 truncate">
+                  Empresa:{" "}
+                  <span className="font-medium text-orange-700">
+                    {user.company.name}
+                  </span>
+                </span>
+              )}
+
+              {user?.branch && (
+                <span className="text-[11px] text-gray-500 truncate">
+                  Sucursal:{" "}
+                  <span className="font-medium text-gray-700">
+                    {user.branch.name}
+                  </span>
+                </span>
+              )}
             </div>
           </div>
         </div>
