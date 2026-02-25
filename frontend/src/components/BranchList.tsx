@@ -41,7 +41,7 @@ export default function BranchList({ branches, onEdit, onDelete }: Props) {
           {branches.length === 0 ? (
             <tr>
               <td
-                colSpan={Boolean(onEdit || onDelete) ? 4 : 3}
+                colSpan={onEdit || onDelete ? 4 : 3}
                 className="px-6 py-4 text-center text-sm text-gray-500"
               >
                 No hay sucursales registradas.
