@@ -16,8 +16,8 @@ export default function BranchesPage() {
   const { companies } = useCompanies();
   const [branches, setBranches] = useState<Branch[]>([]);
   const user = useAuthStore((state) => state.user);
-  const canManageBranches =
-    user?.role === "SUPERADMIN" || user?.role === "DIRECTOR";
+  const role = user?.role?.toUpperCase();
+  const canManageBranches = role === "SUPERADMIN" || role === "DIRECTOR";
 
   // Estado para saber a quién estamos editando
   const [branchToEdit, setBranchToEdit] = useState<Branch | null>(null);

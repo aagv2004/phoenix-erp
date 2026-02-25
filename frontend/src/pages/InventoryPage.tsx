@@ -13,10 +13,9 @@ export default function InventoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const user = useAuthStore((state) => state.user);
+  const role = user?.role?.toUpperCase();
   const canCreateProduct =
-    user?.role === "SUPERADMIN" ||
-    user?.role === "DIRECTOR" ||
-    user?.role === "GERENTE";
+    role === "SUPERADMIN" || role === "DIRECTOR" || role === "GERENTE";
 
   const loadData = async () => {
     try {

@@ -5,6 +5,7 @@ import BranchesPage from "./pages/BranchesPage";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import InventoryPage from "./pages/InventoryPage";
+import RegisterTestPage from "./pages/RegisterTestPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 
@@ -13,6 +14,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register-test" element={<RegisterTestPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Layout />}>

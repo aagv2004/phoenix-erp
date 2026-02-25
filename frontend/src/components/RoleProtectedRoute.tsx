@@ -1,14 +1,9 @@
+import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuthStore } from "../store/authStore";
-import { useSyncExternalStore } from "react";
-
-const useHasHydrated = () => {
-  return useSyncExternalStore(
-    (onStoreChange) => useAuthStore.persist.onFinishHydration(onStoreChange),
-    () => useAuthStore.persist.hasHydrated(),
-    () => false,
-  );
-};
+import {
+  loadPersistedAuth,
+  type PersistedAuthState,
+} from "../utils/authPersistence";
 
 interface RoleProtectedRouteProps {
   allowedRoles: string[];
@@ -17,19 +12,17 @@ interface RoleProtectedRouteProps {
 export const RoleProtectedRoute = ({
   allowedRoles,
 }: RoleProtectedRouteProps) => {
-  const hasHydrated = useHasHydrated();
-  const { isAuth, user } = useAuthStore((state) => ({
-    isAuth: state.isAuth,
-    user: state.user,
-  }));
+  const [auth] = useState<PersistedAuthState | null>(() => loadPersistedAuth());
 
-  if (!hasHydrated) return null;
+  const token = auth?.token;
+  const user = auth?.user;
+  const isAuth = auth?.isAuth ?? !!token;
 
   if (!isAuth) {
     return <Navigate to="/login" replace />;
   }
 
-  const role = user?.role;
+  const role = user?.role?.toUpperCase();
 
   if (!role || !allowedRoles.includes(role)) {
     return <Navigate to="/" replace />;

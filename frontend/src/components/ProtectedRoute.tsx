@@ -1,24 +1,17 @@
+import { useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuthStore } from "../store/authStore";
-import { useSyncExternalStore } from "react";
-
-const useHasHydrated = () => {
-  return useSyncExternalStore(
-    (onStoreChange) => useAuthStore.persist.onFinishHydration(onStoreChange),
-    () => useAuthStore.persist.hasHydrated(),
-    () => false,
-  );
-};
+import {
+  loadPersistedAuth,
+  type PersistedAuthState,
+} from "../utils/authPersistence";
 
 export const ProtectedRoute = () => {
-  const isAuth = useAuthStore((state) => state.isAuth);
-  const hasHydrated = useHasHydrated();
+  const [auth] = useState<PersistedAuthState | null>(() => loadPersistedAuth());
 
-  if (!hasHydrated) {
-    return null;
-  }
+  const token = auth?.token;
+  const isAuth = auth?.isAuth ?? !!token;
 
-  if (!isAuth) {
+  if (!token && !isAuth) {
     return <Navigate to="/login" replace />;
   }
 

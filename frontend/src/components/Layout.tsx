@@ -7,27 +7,26 @@ import {
   Package2,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
-import { useEffect, useSyncExternalStore } from "react";
-
-const useHasHydrated = () => {
-  return useSyncExternalStore(
-    (onStoreChange) => useAuthStore.persist.onFinishHydration(onStoreChange),
-    () => useAuthStore.persist.hasHydrated(),
-    () => false,
-  );
-};
+import { useEffect, useState } from "react";
 
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, setLogout, fetchCurrentUser } = useAuthStore();
-  const isHydrated = useHasHydrated();
+  const { user, token, setLogout, fetchCurrentUser } = useAuthStore();
+  const [profileRequested, setProfileRequested] = useState(false);
 
+  // Si hay token pero aún no hemos cargado el perfil completo, lo pedimos una sola vez
   useEffect(() => {
-    if (isHydrated && user && !user.company && fetchCurrentUser) {
-      void fetchCurrentUser();
-    }
-  }, [isHydrated, user, fetchCurrentUser]);
+    if (!token) return;
+    if (!user) return;
+    if (user.company || user.branch) return;
+    if (!fetchCurrentUser) return;
+    if (profileRequested) return;
+
+    void fetchCurrentUser().finally(() => {
+      setProfileRequested(true);
+    });
+  }, [token, user, fetchCurrentUser, profileRequested]);
 
   const handleLogout = () => {
     setLogout();
@@ -60,9 +59,6 @@ export default function Layout() {
       roles: ["SUPERADMIN", "DIRECTOR", "GERENTE", "EMPLEADO"],
     },
   ];
-
-  if (!isHydrated) return null;
-  console.log("Usuario actual tras hidratación:", user);
 
   return (
     <div className="flex h-screen bg-gray-50 bg-[radial-gradient(#e5e7b_1px, transparent_1px)] [background-size:16px_16px]">
